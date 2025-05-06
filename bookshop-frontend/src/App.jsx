@@ -1,35 +1,37 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom';
 import { CssBaseline, AppBar, Toolbar, Typography, Container, Box, Button } from '@mui/material';
-
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import ProfilePage from './pages/ProfilePage';
 import BookDetailsPage from './pages/bookDetailsPage';
-import CartPage from './pages/cartPage'; 
+import CartPage from './pages/cartPage';
+import CheckoutPage from './pages/CheckoutPage';
+import OrderConfirmationPage from './pages/OrderConfirmationPage';
+import OrdersPage from './pages/OrderPage';
 import authService from './service/authService';
 import { AuthProvider, useAuth } from './Context/AuthContext';
+import { CartProvider } from './Context/CartContext';
 
-// ✅ Protected Route Component
 function ProtectedRoute({ children }) {
   const token = authService.getCurrentUserToken();
   return token ? children : <Navigate to="/login" replace />;
 }
 
-// ✅ Main App
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <CssBaseline />
-        <AppContent />
-      </Router>
+      <CartProvider>
+        <Router>
+          <CssBaseline />
+          <AppContent />
+        </Router>
+      </CartProvider>
     </AuthProvider>
   );
 }
 
-// ✅ Layout and Routing
 function AppContent() {
   const { isUserLoggedIn, logout } = useAuth();
   const navigate = useNavigate();
@@ -41,7 +43,6 @@ function AppContent() {
 
   return (
     <>
-      {/* Top Navbar */}
       <AppBar position="static">
         <Toolbar>
           <Typography
@@ -55,7 +56,8 @@ function AppContent() {
           {isUserLoggedIn ? (
             <>
               <Button color="inherit" component={Link} to="/profile">Profile</Button>
-              <Button color="inherit" component={Link} to="/cart">Cart</Button> {/* ✅ Cart for logged-in */}
+              <Button color="inherit" component={Link} to="/cart">Cart</Button>
+              <Button color="inherit" component={Link} to="/orders">Orders</Button>
               <Button color="inherit" onClick={handleLogout}>Logout</Button>
             </>
           ) : (
@@ -67,7 +69,6 @@ function AppContent() {
         </Toolbar>
       </AppBar>
 
-      {/* Main Content */}
       <Container
         component="main"
         sx={{
@@ -85,25 +86,28 @@ function AppContent() {
           <Route path="/book-details" element={<BookDetailsPage />} />
           <Route
             path="/profile"
-            element={
-              <ProtectedRoute>
-                <ProfilePage />
-              </ProtectedRoute>
-            }
+            element={<ProtectedRoute><ProfilePage /></ProtectedRoute>}
           />
           <Route
             path="/cart"
-            element={
-              <ProtectedRoute>
-                <CartPage />
-              </ProtectedRoute>
-            }
+            element={<ProtectedRoute><CartPage /></ProtectedRoute>}
+          />
+          <Route
+            path="/checkout"
+            element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>}
+          />
+          <Route
+            path="/order-confirmation"
+            element={<ProtectedRoute><OrderConfirmationPage /></ProtectedRoute>}
+          />
+          <Route
+            path="/orders"
+            element={<ProtectedRoute><OrdersPage /></ProtectedRoute>}
           />
           <Route path="*" element={<Typography>404 Not Found</Typography>} />
         </Routes>
       </Container>
 
-      {/* Footer */}
       <Box component="footer" sx={{ bgcolor: 'background.paper', p: 3, mt: 'auto' }}>
         <Typography variant="body2" color="text.secondary" align="center">
           {'Copyright © '}

@@ -1,32 +1,92 @@
-import React from 'react';
-import { Box, Typography, IconButton, TextField } from '@mui/material';
-import { Delete } from '@mui/icons-material';
-import { useCart } from '../../Context/CartContext';
+import React, { createContext, useState, useContext, useCallback } from 'react';
+import { getCartItems, addToCart, removeCartItem, updateCartItem } from '../service/cartService';
 
-function CartItem({ item }) {
-    const { removeFromCart, updateQuantity } = useCart();
+const CartContext = createContext();
 
-    return (
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-            <Box>
-                <Typography variant="subtitle1">{item.title}</Typography>
-                <Typography variant="body2">Price: ${item.price.toFixed(2)}</Typography>
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <TextField
-                    type="number"
-                    value={item.quantity}
-                    onChange={(e) => updateQuantity(item.id, parseInt(e.target.value))}
-                    size="small"
-                    sx={{ width: 80, mr: 1 }}
-                    inputProps={{ min: 1 }}
-                />
-                <IconButton onClick={() => removeFromCart(item.id)}>
-                    <Delete />
-                </IconButton>
-            </Box>
-        </Box>
-    );
-}
+export const useCart = () => {
+  const context = useContext(CartContext);
+  if (!context) {
+    throw new Error('useCart must be used within a CartProvider');
+  }
+  return context;
+};
 
-export default CartItem;
+export const CartProvider = ({ children }) => {
+  const [cartItems, setCartItems] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const fetchCart = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const items = await getCartItems();
+      setCartItems(items);
+    } catch (err) {
+      setError('Failed to fetch cart items.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const addToCart = async (book) => {
+    setLoading(true);
+    setError(null);
+    try {
+      await addToCart(book);
+      await fetchCart();
+    } catch (err) {
+      setError('Failed to add item to cart.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const removeFromCart = async (id) => {
+    setLoading(true);
+    setError(null);
+    try {
+      await removeCartItem(id);
+      setCartItems(cartItems.filter(item => item.id !== id));
+    } catch (err) {
+      setError('Failed to remove item from cart.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateQuantity = async (id, quantity) => {
+    if (quantity < 1) return;
+    setLoading(true);
+    setError(null);
+    try {
+      await updateCartItem(id, quantity);
+      setCartItems(cartItems.map(item => (item.id === id ? { ...item, quantity } : item)));
+    } catch (err) {
+      setError('Failed to update cart item quantity.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const clearCart = () => {
+    setCartItems([]);
+  };
+
+  return (
+    <CartContext.Provider
+      value={{
+        cartItems,
+        loading,
+        error,
+        fetchCart,
+        addToCart,
+        removeFromCart,
+        updateQuantity,
+        clearCart,
+      }}
+    >
+      {children}
+    </CartContext.Provider>
+  );
+};
