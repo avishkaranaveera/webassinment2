@@ -49,7 +49,7 @@ bookshop/
 │   ├── models/             # DB models
 │   ├── routes/             # API endpoints
 │   ├── .env                # Environment variables
-│   ├── index.js            # Entry point
+│   ├── server.js            # Entry point
 │   └── package.json
 ├── frontend/
 │   ├── public/
