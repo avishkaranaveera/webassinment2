@@ -1,5 +1,5 @@
-// src/context/authContext.js
-import React, { createContext, useState, useContext } from 'react';
+import React, { createContext, useState, useContext, useEffect } from 'react';
+import authService from '../service/authService';
 
 const AuthContext = createContext();
 
@@ -10,11 +10,18 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
 
+  // Check for token on initial load
+  useEffect(() => {
+    const token = authService.getCurrentUserToken();
+    setIsUserLoggedIn(!!token);
+  }, []);
+
   const login = () => {
     setIsUserLoggedIn(true);
   };
 
   const logout = () => {
+    authService.logout();
     setIsUserLoggedIn(false);
   };
 

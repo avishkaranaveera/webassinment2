@@ -10,7 +10,7 @@ function CartItem({ item }) {
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
             <Box>
                 <Typography variant="subtitle1">{item.title}</Typography>
-                <Typography variant="body2">Price: ${item.price.toFixed(2)}</Typography>
+                <Typography variant="body2">Price: Rs {item.price.toFixed(2)}</Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <TextField

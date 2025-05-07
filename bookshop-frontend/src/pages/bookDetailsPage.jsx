@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Button, Typography } from '@mui/material';
-import { addToCart } from '../service/cartService';  // Importing addToCart from cartService
+import { addToCart } from '../service/cartService';
 
-const convertToINR = (amount, currency) => {
+const convertToLKR = (amount, currency) => {
   const rates = {
-    USD: 83,
-    EUR: 90,
-    GBP: 105,
-    INR: 1,
+    USD: 300,
+    EUR: 325,
+    GBP: 380,
+    INR: 3.6,
+    LKR: 1,
   };
   const rate = rates[currency] || 1;
   return Math.round(amount * rate);
@@ -27,15 +28,16 @@ const BookDetailsPage = () => {
   const description = book.volumeInfo.description || 'No description';
   const price = book.saleInfo?.listPrice?.amount;
   const currency = book.saleInfo?.listPrice?.currencyCode;
-  const inrPrice = price && currency ? convertToINR(price, currency) : null;
+  const lkrPrice = price && currency ? convertToLKR(price, currency) : null;
   const stock = Math.floor(Math.random() * 10) + 1;
   const thumbnail = book.volumeInfo.imageLinks?.thumbnail;
 
   const handleAddToCart = async () => {
     if (stock > 0) {
       try {
-        await addToCart(book);  // Calls the function from cartService
-        navigate('/cart');  // Navigate to the cart page after adding the book
+        // Pass LKR price to cart
+        await addToCart({ ...book, lkrPrice });
+        navigate('/cart');
       } catch (error) {
         setError('Failed to add to cart. Please try again.');
       }
@@ -45,7 +47,7 @@ const BookDetailsPage = () => {
   };
 
   return (
-    <div style={{ padding: '1rem' }}>
+    <div style={{ padding: '1irem' }}>
       {thumbnail && (
         <img
           src={thumbnail}
@@ -56,7 +58,7 @@ const BookDetailsPage = () => {
       <h2>{title}</h2>
       <p><strong>Author:</strong> {authors}</p>
       <p><strong>Description:</strong> {description}</p>
-      <p><strong>Price:</strong> {inrPrice ? `₹${inrPrice} (original: ${price} ${currency})` : 'Not available'}</p>
+      <p><strong>Price:</strong> {lkrPrice ? `Rs ${lkrPrice}` : 'Not available'}</p>
       <p><strong>Stock:</strong> {stock > 0 ? `${stock} in stock` : 'Out of stock'}</p>
 
       {error && <Typography color="error">{error}</Typography>}

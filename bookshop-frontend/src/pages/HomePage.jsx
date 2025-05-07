@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchBooks } from '../service/bookService';
 import {
@@ -16,12 +16,13 @@ import {
   CircularProgress,
 } from '@mui/material';
 
-const convertToINR = (amount, currency) => {
+const convertToLKR = (amount, currency) => {
   const rates = {
-    USD: 83,
-    EUR: 90,
-    GBP: 105,
-    INR: 1,
+    USD: 300,
+    EUR: 325,
+    GBP: 380,
+    INR: 3.6,
+    LKR: 1,
   };
   const rate = rates[currency] || 1;
   return Math.round(amount * rate);
@@ -48,14 +49,14 @@ const HomePage = () => {
 
         const filtered = result
           .map((book) => {
-            const price = book.saleInfo?.listPrice?.amount || 0;
-            const currency = book.saleInfo?.listPrice?.currencyCode;
-            const inrPrice = convertToINR(price, currency);
+            const price = book.saleInfo?.listPrice?.amount || 1000; // Default price: 1000 LKR
+            const currency = book.saleInfo?.listPrice?.currencyCode || 'LKR';
+            const lkrPrice = convertToLKR(price, currency);
 
             return {
               ...book,
-              inrPrice,
-              stock: Math.floor(Math.random() * 10), // Simulated stock
+              lkrPrice,
+              stock: Math.floor(Math.random() * 10),
               category: book.volumeInfo.categories ? book.volumeInfo.categories.join(', ') : 'Other',
             };
           })
@@ -66,13 +67,12 @@ const HomePage = () => {
             return true;
           })
           .sort((a, b) => {
-            // Add checks if data is missing
-            const priceA = a.inrPrice || 0;
-            const priceB = b.inrPrice || 0;
+            const priceA = a.lkrPrice || 0;
+            const priceB = b.lkrPrice || 0;
             const titleA = a.volumeInfo?.title || '';
             const titleB = b.volumeInfo?.title || '';
             const ratingA = a.volumeInfo?.averageRating || 0;
-            const ratingB = b.volumeInfo?.averageRating || 0;
+            const ratingB = a.volumeInfo?.averageRating || 0;
 
             if (priceSortOption === 'priceAsc') {
               return priceA - priceB;
@@ -184,7 +184,6 @@ const HomePage = () => {
         </Grid>
       </Grid>
 
-      {/* Show loading spinner or error message */}
       {loading && <CircularProgress />}
 
       {error && <Typography color="error">{error}</Typography>}
@@ -194,9 +193,7 @@ const HomePage = () => {
           const title = book.volumeInfo.title || 'No Title';
           const authors = book.volumeInfo.authors?.join(', ') || 'Unknown';
           const description = book.volumeInfo.description || 'No description available';
-          const price = book.saleInfo?.listPrice?.amount;
-          const currency = book.saleInfo?.listPrice?.currencyCode;
-          const inrPrice = book.inrPrice;
+          const lkrPrice = book.lkrPrice;
           const stock = book.stock;
           const thumbnail = book.volumeInfo.imageLinks?.thumbnail;
           const rating = book.volumeInfo.averageRating || null;
@@ -234,10 +231,7 @@ const HomePage = () => {
                     {description.slice(0, 100)}...
                   </Typography>
                   <Typography variant="body2" sx={{ mt: 1 }}>
-                    Price:{' '}
-                    {inrPrice
-                      ? `₹${inrPrice} (original: ${price} ${currency})`
-                      : 'Not available'}
+                    Price: Rs {lkrPrice}
                   </Typography>
                   <Typography variant="body2">
                     Stock: {stock > 0 ? `${stock} available` : 'Out of stock'}

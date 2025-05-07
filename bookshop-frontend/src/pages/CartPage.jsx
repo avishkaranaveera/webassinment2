@@ -10,6 +10,11 @@ const CartPage = () => {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
+  // Calculate total price based on cart items
+  const calculateTotalPrice = () => {
+    return cartItems.reduce((total, item) => total + item.price * item.quantity, 0).toFixed(2);
+  };
+
   useEffect(() => {
     const fetchCartItems = async () => {
       try {
@@ -17,7 +22,7 @@ const CartPage = () => {
         setCartItems(data);
         setLoading(false);
       } catch (error) {
-        setError('Failed to load cart items.');
+        setError(error.message || 'Failed to load cart items.');
         setLoading(false);
       }
     };
@@ -30,16 +35,17 @@ const CartPage = () => {
       await removeCartItem(id);
       setCartItems(cartItems.filter(item => item.id !== id));
     } catch (error) {
-      setError('Failed to remove item.');
+      setError(error.message || 'Failed to remove item.');
     }
   };
 
   const handleUpdateQuantity = async (id, quantity) => {
+    if (quantity < 1) return;
     try {
       await updateCartItem(id, quantity);
       setCartItems(cartItems.map(item => (item.id === id ? { ...item, quantity } : item)));
     } catch (error) {
-      setError('Failed to update quantity.');
+      setError(error.message || 'Failed to update quantity.');
     }
   };
 
@@ -64,7 +70,7 @@ const CartPage = () => {
               <ListItem key={item.id} divider>
                 <ListItemText
                   primary={item.title}
-                  secondary={`Price: ₹${item.price} | Quantity:`}
+                  secondary={`Price: Rs ${parseFloat(item.price).toFixed(2)} | Quantity: ${item.quantity} | Subtotal: Rs ${(item.price * item.quantity).toFixed(2)}`}
                 />
                 <TextField
                   type="number"
@@ -80,6 +86,9 @@ const CartPage = () => {
               </ListItem>
             ))}
           </List>
+          <Typography variant="h6" sx={{ mt: 2 }}>
+            Total Price: Rs {calculateTotalPrice()}
+          </Typography>
           <Button
             variant="contained"
             onClick={handleCheckout}

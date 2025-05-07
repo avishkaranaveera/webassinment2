@@ -1,16 +1,16 @@
-// src/components/LoginForm.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import authService from '../../service/authService';
+import { useAuth } from '../../Context/AuthContext';
 import { TextField, Button, Box, Typography, Alert, CircularProgress } from '@mui/material';
 
-// Optional: Pass an onLoginSuccess callback if using Context API or similar
 function LoginForm({ onLoginSuccess }) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+    const { login } = useAuth();
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -19,17 +19,15 @@ function LoginForm({ onLoginSuccess }) {
 
         try {
             const userData = await authService.login(email, password);
-            console.log('Login successful:', userData);
-            // Call the callback if provided (e.g., to update global state)
+            login(); // Update AuthContext
             if (onLoginSuccess) {
-                 onLoginSuccess(userData);
+                onLoginSuccess(userData);
             }
-             // Redirect to a protected area, e.g., dashboard or profile
-            navigate('/profile'); // Adjust the target route as needed
+            navigate('/profile');
         } catch (err) {
-             const message = err.response?.data?.message || 'Login failed. Please check credentials.';
+            const message = err.response?.data?.message || 'Login failed. Please check credentials.';
             setError(message);
-             console.error("Login error details:", err.response || err);
+            console.error("Login error details:", err.response || err);
         } finally {
             setLoading(false);
         }
@@ -67,7 +65,6 @@ function LoginForm({ onLoginSuccess }) {
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={loading}
             />
-            {/* Add "Remember Me" checkbox here if implementing */}
             <Button
                 type="submit"
                 fullWidth
@@ -75,7 +72,7 @@ function LoginForm({ onLoginSuccess }) {
                 sx={{ mt: 3, mb: 2 }}
                 disabled={loading || !email || !password}
             >
-                 {loading ? <CircularProgress size={24} /> : 'Log In'}
+                {loading ? <CircularProgress size={24} /> : 'Log In'}
             </Button>
         </Box>
     );

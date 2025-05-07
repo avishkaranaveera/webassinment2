@@ -1,5 +1,7 @@
 import React, { createContext, useState, useContext, useCallback } from 'react';
 import { getCartItems, addToCart, removeCartItem, updateCartItem } from '../service/cartService';
+import authService from '../service/authService';
+import { useNavigate } from 'react-router-dom';
 
 const CartContext = createContext();
 
@@ -15,15 +17,21 @@ export const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   const fetchCart = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
+      const token = authService.getCurrentUserToken();
+      if (!token) {
+        setCartItems([]);
+        return;
+      }
       const items = await getCartItems();
       setCartItems(items);
     } catch (err) {
-      setError('Failed to fetch cart items.');
+      setError(err.message || 'Failed to fetch cart items.');
     } finally {
       setLoading(false);
     }
@@ -33,10 +41,16 @@ export const CartProvider = ({ children }) => {
     setLoading(true);
     setError(null);
     try {
+      const token = authService.getCurrentUserToken();
+      if (!token) {
+        setError('Please log in to add items to your cart.');
+        navigate('/login');
+        return;
+      }
       await addToCart(book);
       await fetchCart();
     } catch (err) {
-      setError('Failed to add item to cart.');
+      setError(err.message || 'Failed to add item to cart.');
     } finally {
       setLoading(false);
     }
@@ -49,7 +63,7 @@ export const CartProvider = ({ children }) => {
       await removeCartItem(id);
       setCartItems(cartItems.filter(item => item.id !== id));
     } catch (err) {
-      setError('Failed to remove item from cart.');
+      setError(err.message || 'Failed to remove item from cart.');
     } finally {
       setLoading(false);
     }
@@ -63,7 +77,7 @@ export const CartProvider = ({ children }) => {
       await updateCartItem(id, quantity);
       setCartItems(cartItems.map(item => (item.id === id ? { ...item, quantity } : item)));
     } catch (err) {
-      setError('Failed to update cart item quantity.');
+      setError(err.message || 'Failed to update cart item quantity.');
     } finally {
       setLoading(false);
     }

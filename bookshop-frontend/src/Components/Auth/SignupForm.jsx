@@ -136,12 +136,12 @@ function SignupForm() {
                 fullWidth
                 variant="contained"
                 sx={{ mt: 3, mb: 2 }}
-                 // --- MODIFIED: Update disabled condition ---
+              
                 disabled={
                     loading ||
-                    !username || // Check username
-                    username.length < 3 || // Check username length
-                    !email || // Check email
+                    !username || 
+                    username.length < 3 || 
+                    !email ||
                     !password ||
                     password.length < 6 ||
                     password !== confirmPassword
